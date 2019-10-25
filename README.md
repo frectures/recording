@@ -55,7 +55,6 @@ Auf beiden Linux Mint Varianten empfiehlt es sich, proprietäre Codecs zu instal
 ```
 sudo apt install mint-meta-codecs
 ```
-Alternativ kann man auf MKV+Vorbis (statt MP4+AAC) ausweichen.
 
 Falls die Standard-Software des Betriebssystems das aufgezeichnete Video nicht abspielen kann, VLC installieren:
 ```
@@ -83,13 +82,13 @@ https://superuser.com/questions/138331
 ### Ende abschneiden
 
 ```
-ffmpeg -i input.mp4 -c copy -t 01:02:03.0 output.mp4
+ffmpeg -i input.mkv -c copy -t 01:02:03.0 output.mkv
 ```
 
 ### Anfang und Ende abschneiden
 
 ```
-ffmpeg -ss 00:01:23.0 -i input.mp4 -c copy -to 01:02:03.0 output.mp4
+ffmpeg -ss 00:01:23.0 -i input.mkv -c copy -to 01:02:03.0 output.mkv
 ```
 
 Den Anfang sollte man möglichst an einem Keyframe abschneiden, um sich unnötigen Software-Ärger zu ersparen.
@@ -101,7 +100,7 @@ https://stackoverflow.com/questions/18085458
 Die Zeitstempel von Keyframes kann `ffprobe` ermitteln:
 
 ```
-ffprobe -loglevel error -skip_frame nokey -select_streams v:0 -show_entries frame=pkt_pts_time -of csv=print_section=0 input.mp4
+ffprobe -loglevel error -skip_frame nokey -select_streams v:0 -show_entries frame=pkt_pts_time -of csv=print_section=0 input.mkv
 ```
 
 ### Zusammenfügen
@@ -109,13 +108,54 @@ ffprobe -loglevel error -skip_frame nokey -select_streams v:0 -show_entries fram
 https://stackoverflow.com/questions/42859528
 
 ```
-ffmpeg -f concat -i inputs.txt -c copy output.mp4
+ffmpeg -f concat -i inputs.txt -c copy output.mkv
 ```
 inputs.txt
 ```
-file a.mp4
-file b.mp4
-file c.mp4
+file a.mkv
+file b.mkv
+file c.mkv
+```
+
+### Audio postprocessing
+
+Eingabe in Video und Audio auftrennen, dabei Frequenzen bis 80 Hz und ab 5 kHz dämpfen:
+```
+ffmpeg -i input.mkv -map 0:v -c:v copy video.mkv -map 0:a -af \
+highpass=frequency=80,lowpass=frequency=5000 noisy.wav
+```
+Das Samson Meteor schlägt bei Harmonischen von 1 kHz aus, diese sollte man ebenfalls dämpfen:
+```
+ffmpeg -i input.mkv -map 0:v -c:v copy video.mkv -map 0:a -af \
+equalizer=frequency=1000:width_type=h:width=10:gain=-12,\
+equalizer=frequency=2000:width_type=h:width=10:gain=-12,\
+equalizer=frequency=3000:width_type=h:width=10:gain=-10,\
+equalizer=frequency=4000:width_type=h:width=10:gain=-8,\
+equalizer=frequency=5000:width_type=h:width=10:gain=-6,\
+highpass=frequency=80,lowpass=frequency=5000 noisy.wav
+```
+![](meteor.png)
+
+Rauschen entfernen:
+* `noisy.wav` in Audacity öffnen
+* Ein paar Sekunden rauschender Stille markieren
+* Effekt / Rausch-Verminderung...
+  * Rauschprofil ermitteln
+* Alles markieren
+* Effekt / Rausch-Verminderung...
+  * Rauschverminderung (db): 24
+  * Empfindlichkeit: 6,00
+  * Frequenz-Glättung (Bänder): 3
+  * Rauschen: (*) Vermindern
+  * OK
+* Datei / Exportieren / Als WAV exportieren
+  * Name: `clean.wav`
+  * Speichern
+  * OK
+
+Bereinigtes Audio komprimieren und mit Video zusammenführen:
+```
+ffmpeg -i video.mkv -i clean.wav -c:v copy -c:a aac output.mp4
 ```
 
 ## YouTube

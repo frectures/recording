@@ -36,6 +36,20 @@
 * Tafelbilder laut und ausführlich erläutern
 * In großen Sälen: Fragen knapp wiederholen
 
+## mplayer
+
+### Installation
+
+```
+sudo apt install mplayer
+```
+
+### Webcam einblenden
+
+```
+mplayer tv:// -tv driver=v4l2:width=320:height=180 -vf mirror -vo xv -geometry 100%:100% -noborder -ontop
+```
+
 ## SimpleScreenRecorder
 
 ### Installation

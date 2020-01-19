@@ -133,12 +133,12 @@ file c.mkv
 
 ### Audio postprocessing
 
-Eingabe in Video und Audio auftrennen, dabei Frequenzen bis 80 Hz und ab 5 kHz dämpfen:
+Eingabe in Video und Audio auftrennen:
 ```
-ffmpeg -i input.mkv -map 0:v -c:v copy video.mkv -map 0:a -af \
-highpass=frequency=80,lowpass=frequency=5000 noisy.wav
+ffmpeg -i input.mkv -map 0:v -c:v copy video.mkv -map 0:a -c:a copy noisy.wav
 ```
-Das Samson Meteor schlägt bei Harmonischen von 1 kHz aus, diese sollte man ebenfalls dämpfen:
+Das Samson Meteor schlägt bei Harmonischen von 1 kHz aus, diese sollte man dämpfen.
+Außerdem empfiehlt sich ein Hochpassfilter bei 80 Hz und ein Tiefpassfilter bei 5 kHz:
 ```
 ffmpeg -i input.mkv -map 0:v -c:v copy video.mkv -map 0:a -af \
 equalizer=frequency=1000:width_type=h:width=10:gain=-12,\
@@ -157,7 +157,7 @@ Rauschen entfernen:
   * Rauschprofil ermitteln
 * Alles markieren
 * Effekt / Rausch-Verminderung...
-  * Rauschverminderung (db): 24
+  * Rauschverminderung (db): 12
   * Empfindlichkeit: 6,00
   * Frequenz-Glättung (Bänder): 3
   * Rauschen: (*) Vermindern

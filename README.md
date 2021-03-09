@@ -133,43 +133,22 @@ file c.mkv
 
 ### Audio postprocessing
 
-Eingabe in Video und Audio auftrennen:
+Die Tastatur-Anschläge verursachen ein unangenehmes Wummern, das man mit 4 Hochpassfiltern eliminiert:
 ```
-ffmpeg -i input.mkv -map 0:v -c:v copy video.mkv -map 0:a -c:a copy noisy.wav
+ffmpeg -i input.mkv -c:v copy -af \
+highpass=frequency=80,\
+highpass=frequency=80,\
+highpass=frequency=80,\
+highpass=frequency=80 output.mp4
 ```
-Das Samson Meteor schlägt bei Harmonischen von 1 kHz aus, diese sollte man dämpfen.
-Außerdem empfiehlt sich ein Hochpassfilter bei 80 Hz und ein Tiefpassfilter bei 5 kHz:
-```
-ffmpeg -i input.mkv -map 0:v -c:v copy video.mkv -map 0:a -af \
-equalizer=frequency=1000:width_type=h:width=10:gain=-12,\
-equalizer=frequency=2000:width_type=h:width=10:gain=-12,\
-equalizer=frequency=3000:width_type=h:width=10:gain=-10,\
-equalizer=frequency=4000:width_type=h:width=10:gain=-8,\
-equalizer=frequency=5000:width_type=h:width=10:gain=-6,\
-highpass=frequency=80,lowpass=frequency=5000 noisy.wav
-```
-![](meteor.png)
 
-Rauschen entfernen:
-* `noisy.wav` in Audacity öffnen
-* Ein paar Sekunden rauschender Stille markieren
-* Effekt / Rausch-Verminderung...
-  * Rauschprofil ermitteln
-* Alles markieren
-* Effekt / Rausch-Verminderung...
-  * Rauschverminderung (db): 12
-  * Empfindlichkeit: 6,00
-  * Frequenz-Glättung (Bänder): 3
-  * Rauschen: (*) Vermindern
-  * OK
-* Datei / Exportieren / Als WAV exportieren
-  * Name: `clean.wav`
-  * Speichern
-  * OK
-
-Bereinigtes Audio komprimieren und mit Video zusammenführen:
+Zusammenfügen und Audio postprocessing kombiniert:
 ```
-ffmpeg -i video.mkv -i clean.wav -c:v copy -c:a aac output.mp4
+ffmpeg -f concat -i inputs.txt -c:v copy -af \
+highpass=frequency=80,\
+highpass=frequency=80,\
+highpass=frequency=80,\
+highpass=frequency=80 output.mp4
 ```
 
 ## YouTube
